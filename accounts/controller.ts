@@ -1,8 +1,8 @@
 import {Request, Response, Router} from 'express'
 import {Account, User} from '../interfaces'
 import {AccountsManager, UsersManager} from './../moduleloader'
-import {accountCreate, paymentQueryParameters} from './../schemas/index'
-import {validateSchema} from './../utils/schemaValidation'
+import {accountCreate, accountListingQueryParameter, paymentSchema} from './../schemas/index'
+import {validateQueryParameters, validateSchema} from './../utils/schemaValidation'
 
 export const accountRouter = Router()
 
@@ -26,8 +26,21 @@ accountRouter
     })
 
 accountRouter
+    .route('/:id')
+    .get(validateQueryParameters(accountListingQueryParameter), async (req: Request, res: Response) => {
+        try {
+            const filter = req.query as {title: string, bank: string}
+            const result = await AccountsManager.getAccounts(+req.params.id, filter)
+
+            res.status(200).send({result})
+        } catch (err: any) {
+            res.status(400).send({error: err.message})
+        }
+    })
+
+accountRouter
     .route('/payments')
-    .post(validateSchema(paymentQueryParameters), async (req: Request, res: Response) => {
+    .post(validateSchema(paymentSchema), async (req: Request, res: Response) => {
         try {
             let beneficiary: Account = req.body['beneficiary']
             let benefactor: Account = req.body['benefactor']

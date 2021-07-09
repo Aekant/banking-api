@@ -12,7 +12,7 @@ export const accountCreate: ObjectSchema = joi.object().keys({
     identityNo: joi.number().required()
 })
 
-export const paymentQueryParameters: ObjectSchema = joi.object().keys({
+export const paymentSchema: ObjectSchema = joi.object().keys({
     beneficiary: joi.object().keys({
         title: joi.string().required(),
         bank: joi.string().required()
@@ -22,4 +22,12 @@ export const paymentQueryParameters: ObjectSchema = joi.object().keys({
         bank: joi.string().required()
     }).required(),
     amount: joi.number().required()
+})
+
+export const accountListingQueryParameter: ObjectSchema = joi.object().keys({
+    title: joi.string(),
+    bank: joi.when('title', {
+        is: joi.exist(),
+        then: joi.string().required()
+    })
 })
