@@ -56,11 +56,30 @@ export abstract class Base {
 
 	}
 
-    protected async create<T extends BaseEntity>(obj: T) {
+	getKey(id: number | string): string {
+        return this.getKeyPrefix() + id.toString()
+    }
+	
+	findValueByKey<T extends BaseEntity>(key: string): Promise<T> {
+        return new Promise((resolve, reject) => {
+            bucket.get(key, (err: any, result: any) => {
+                if (err)
+                    return reject(err)
+
+                return resolve(result.value)
+            })
+        })
+    }
+
+	findById<T extends BaseEntity>(id: number): Promise<T> {
+        return this.findValueByKey(this.getKey(id))
+    }
+
+    protected async create<T extends BaseEntity>(obj: T, suffix?: string) {
 
 		this.setMustHaves(obj)
 		obj.id = await this.getNextId(this.getCounterKey())
-		const key: string = this.getKeyPrefix() + obj.id.toString()
+		const key: string = this.getKeyPrefix() + (suffix || obj.id.toString())
 		const result: T = await this.saveKeyValue(key, obj)
 		return Promise.resolve(result)
 
