@@ -21,6 +21,14 @@ class Accounts extends Base {
         result['key'] = this.getKeyPrefix() + suffix
         return Promise.resolve(result)
     }
+
+    async payment(benefactor: Account, beneficiary: Account, amount: number) {
+        benefactor.balance -= amount
+        beneficiary.balance += amount
+
+        await AccountsManager.replace(benefactor, `${benefactor.title.split(' ').join()}::${benefactor.bank}`)
+        await AccountsManager.replace(beneficiary, `${beneficiary.title.split(' ').join()}::${beneficiary.bank}`)
+    }
 }
 
 export const AccountsManager = new Accounts()

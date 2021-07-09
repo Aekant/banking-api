@@ -1,7 +1,7 @@
 import {Request, Response, Router} from 'express'
 import {Account, User} from '../interfaces'
 import {AccountsManager, UsersManager} from './../moduleloader'
-import {accountCreate} from './../schemas/index'
+import {accountCreate, paymentQueryParameters} from './../schemas/index'
 import {validateSchema} from './../utils/schemaValidation'
 
 export const accountRouter = Router()
@@ -21,6 +21,26 @@ accountRouter
             delete account['key']
             res.status(201).send({data: account})
         } catch (err: any) {
+            res.status(400).send({error: err.message})
+        }
+    })
+
+accountRouter
+    .route('/payments')
+    .post(validateSchema(paymentQueryParameters), async (req: Request, res: Response) => {
+        try {
+            let beneficiary: Account = req.body['beneficiary']
+            let benefactor: Account = req.body['benefactor']
+
+            beneficiary =  await AccountsManager.findValueByKey(AccountsManager.getKey(`${beneficiary.title.split(' ').join()}::${beneficiary.bank}`))
+            benefactor =  await AccountsManager.findValueByKey(AccountsManager.getKey(`${benefactor.title.split(' ').join()}::${benefactor.bank}`))
+
+            if(benefactor.balance - (+req.body['amount']) < 500)
+                throw new Error('Benefactor account balance cannot be less than 500')
+
+            await AccountsManager.payment(benefactor, beneficiary, +req.body.amount)
+            res.status(201).send({message: "Payment successful"})
+        } catch (err) {
             res.status(400).send({error: err.message})
         }
     })

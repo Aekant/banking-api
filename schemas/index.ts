@@ -11,3 +11,15 @@ export const accountCreate: ObjectSchema = joi.object().keys({
     bank: joi.string().required(),
     identityNo: joi.number().required()
 })
+
+export const paymentQueryParameters: ObjectSchema = joi.object().keys({
+    beneficiary: joi.object().keys({
+        title: joi.string().required(),
+        bank: joi.string().required()
+    }).required(),
+    benefactor: joi.object().keys({
+        title: joi.string().required(),
+        bank: joi.string().required()
+    }).required(),
+    amount: joi.number().required()
+})
