@@ -31,3 +31,8 @@ export const accountListingQueryParameter: ObjectSchema = joi.object().keys({
         then: joi.string().required()
     })
 })
+
+export const accountLogsQueryParameters: ObjectSchema = joi.object().keys({
+    title: joi.string().required(),
+    bank: joi.string().required()
+})

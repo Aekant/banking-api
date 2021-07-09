@@ -1,7 +1,7 @@
 import {Request, Response, Router} from 'express'
-import {Account, User} from '../interfaces'
+import {Account, TransferHistory, User} from '../interfaces'
 import {AccountsManager, UsersManager} from './../moduleloader'
-import {accountCreate, accountListingQueryParameter, paymentSchema} from './../schemas/index'
+import {accountCreate, accountListingQueryParameter, accountLogsQueryParameters, paymentSchema} from './../schemas/index'
 import {validateQueryParameters, validateSchema} from './../utils/schemaValidation'
 
 export const accountRouter = Router()
@@ -26,19 +26,6 @@ accountRouter
     })
 
 accountRouter
-    .route('/:id')
-    .get(validateQueryParameters(accountListingQueryParameter), async (req: Request, res: Response) => {
-        try {
-            const filter = req.query as {title: string, bank: string}
-            const result = await AccountsManager.getAccounts(+req.params.id, filter)
-
-            res.status(200).send({result})
-        } catch (err: any) {
-            res.status(400).send({error: err.message})
-        }
-    })
-
-accountRouter
     .route('/payments')
     .post(validateSchema(paymentSchema), async (req: Request, res: Response) => {
         try {
@@ -54,6 +41,30 @@ accountRouter
             await AccountsManager.payment(benefactor, beneficiary, +req.body.amount)
             res.status(201).send({message: "Payment successful"})
         } catch (err) {
+            res.status(400).send({error: err.message})
+        }
+    })
+
+accountRouter
+    .route('/logs')
+    .get(validateQueryParameters(accountLogsQueryParameters), async (req: Request, res: Response) => {
+        try {
+            const logs: Array<TransferHistory> = await AccountsManager.getLogs(req.query as {title:string, bank: string})
+            res.status(200).send({data: logs})
+        } catch(err: any) {
+            res.status(400).send({error: err.message})
+        }
+    })
+
+accountRouter
+    .route('/:id')
+    .get(validateQueryParameters(accountListingQueryParameter), async (req: Request, res: Response) => {
+        try {
+            const filter = req.query as {title: string, bank: string}
+            const result = await AccountsManager.getAccounts(+req.params.id, filter)
+
+            res.status(200).send({result})
+        } catch (err: any) {
             res.status(400).send({error: err.message})
         }
     })

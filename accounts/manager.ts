@@ -1,7 +1,7 @@
 import {UsersManager} from '../users/manager'
 import {Base} from './../base/base'
 import {ACCOUNT_TYPE, ACCOUNT_TYPE_COUNTER, ACCOUNT_TYPE_KEY_PREFIX} from './../constants/index'
-import {Account, User} from './../interfaces/index'
+import {Account, TransferHistory, User} from './../interfaces/index'
 
 class Accounts extends Base {
     getCounterKey() {
@@ -17,6 +17,7 @@ class Accounts extends Base {
     }
 
     async createAccount(account: Account): Promise<Account> {
+        account.logs = []
         const suffix = `${account.title.split(' ').join()}::${account.bank}`
         const result = await super.create(account, suffix)
         result['key'] = this.getKeyPrefix() + suffix
@@ -26,6 +27,23 @@ class Accounts extends Base {
     async payment(benefactor: Account, beneficiary: Account, amount: number) {
         benefactor.balance -= amount
         beneficiary.balance += amount
+
+        const benefactorLog: TransferHistory = {
+            type: 'Sent', 
+            amount, 
+            date: new Date(), 
+            to: `${beneficiary.title}, ${beneficiary.bank}`
+        }
+
+        const beneficiaryLog: TransferHistory = {
+            type: 'Recieved', 
+            amount, 
+            date: new Date(), 
+            from: `${benefactor.title}, ${benefactor.bank}`
+        }
+
+        benefactor.logs.push(benefactorLog)
+        beneficiary.logs.push(beneficiaryLog)
 
         await AccountsManager.replace(benefactor, `${benefactor.title.split(' ').join()}::${benefactor.bank}`)
         await AccountsManager.replace(beneficiary, `${beneficiary.title.split(' ').join()}::${beneficiary.bank}`)
@@ -48,6 +66,11 @@ class Accounts extends Base {
             const account = await AccountsManager.findValueByKey(AccountsManager.getKey(`${filter.title}::${filter.bank}`))
             return Promise.resolve(account)
         }
+    }
+
+    async getLogs(filter: {title: string, bank: string}): Promise<Array<TransferHistory>> {
+        const account = await AccountsManager.findValueByKey(AccountsManager.getKey(`${filter.title}::${filter.bank}`)) as Account
+        return Promise.resolve(account.logs)
     }
 }
 

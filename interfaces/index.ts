@@ -15,5 +15,14 @@ export interface Account extends BaseEntity {
 	balance: number,
 	title: string,
 	bank: string
-	identityNo: number
+	identityNo: number,
+	logs: Array<TransferHistory>
+}
+
+export interface TransferHistory {
+	type: string
+	amount: number
+	date: Date
+	from?: string
+	to?: string
 }
