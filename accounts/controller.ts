@@ -12,10 +12,13 @@ accountRouter
         try {
             // find if the user for which we are creating an account exists?
             const user = await UsersManager.findById(req.body['identityNo']) as User
-            if (!user)
-                throw new Error('User with the given identity number does not exists')
-
+            // if user is found then create an account
             const account = await AccountsManager.createAccount(req.body as Account)
+            // put the refernce of the account object in the user's object
+            user.accounts.push(account['key'])
+            await UsersManager.replace(user, `${user.identityNo}`)
+
+            delete account['key']
             res.status(201).send({data: account})
         } catch (err: any) {
             res.status(400).send({error: err.message})

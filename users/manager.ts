@@ -17,6 +17,7 @@ class Users extends Base {
     }
 
     async createUser(user: User): Promise<User> {
+        user.accounts = []
         const result = await super.create(user, `${user.identityNo}`)
         return Promise.resolve(result)
     }

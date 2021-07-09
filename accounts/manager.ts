@@ -16,7 +16,9 @@ class Accounts extends Base {
     }
 
     async createAccount(account: Account): Promise<Account> {
-        const result = await super.create(account, `${account.title.split(' ').join()}::${account.bank}`)
+        const suffix = `${account.title.split(' ').join()}::${account.bank}`
+        const result = await super.create(account, suffix)
+        result['key'] = this.getKeyPrefix() + suffix
         return Promise.resolve(result)
     }
 }

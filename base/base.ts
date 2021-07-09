@@ -59,7 +59,7 @@ export abstract class Base {
 	getKey(id: number | string): string {
         return this.getKeyPrefix() + id.toString()
     }
-	
+
 	findValueByKey<T extends BaseEntity>(key: string): Promise<T> {
         return new Promise((resolve, reject) => {
             bucket.get(key, (err: any, result: any) => {
@@ -85,4 +85,20 @@ export abstract class Base {
 
 	}
 
+	replace<T extends BaseEntity>(object: T, keySuffix?: string): Promise<T> {
+        return new Promise<T>((resolve, reject) => {
+            if (!object.id)
+                return reject('Missing id in the object')
+
+            this.setMustHaves(object)
+            let key = keySuffix ? this.getKeyPrefix() + keySuffix : this.getKey(object.id)
+
+            bucket.replace(key, object, err => {
+                if (err)
+                    return reject(err)
+
+                resolve(object)
+            })
+        })
+    }
 }
